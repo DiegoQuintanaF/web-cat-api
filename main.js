@@ -47,13 +47,13 @@ async function loadRandomMichis() {
     let view;
 
     view = `
-        ${cats.map(cat => `
+        ${cats.map((cat) => `
             <div class="card-container" id="${cat.id}">
                 <figure class="card-img-container">
                     <img src="${cat.url}" class="card-img" alt="gatito aleatorio">
                 </figure>
                 <div class="card-btn-container">
-                    <button class="card-btn" onclick="saveFavourite('${cat.id}')">Add to fovorit</button>
+                    <button class="card-btn" id="btn-${cat.id}" onclick="saveFavourite('${cat.id}')">Add to fovorit</button>
                 </div>
             </div>
         `).join('')}
@@ -76,13 +76,13 @@ async function loadFavouritesMichis() {
     let view;
 
     view = `
-        ${cats.map(cat => `
+        ${cats.map((cat, catIndex) => `
             <div class="card-container" id="${cat.id}">
                 <figure class="card-img-container">
                     <img src="${cat.image.url}"  class="card-img" alt="gatito aleatorio">
                 </figure>
                 <div class="card-btn-container">
-                    <button class="card-btn card-btn--delete" onclick="deleteFavourite('${cat.id}')">Delete of Favourites</button>
+                    <button class="card-btn card-btn--delete" id="btn-${catIndex + 1}" onclick="deleteFavourite('${cat.id}')">Delete of Favourites</button>
                 </div>
             </div>
         `).join('')}
@@ -92,21 +92,44 @@ async function loadFavouritesMichis() {
 }
 
 
-async function saveFavourite(id) {
-    const response = await fetch(`${API}/favourites?api_key=${API_KEY}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-API-KEY': API_KEY
-        },
-        body: JSON.stringify({
-            image_id: id
-        })
-    });
+async function saveFavourite(catId) {
+    try {
 
-    const data = await response.json();
+        const response = await fetch(`${API}/favourites?api_key=${API_KEY}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-KEY': API_KEY
+            },
+            body: JSON.stringify({
+                image_id: catId
+            })
+        });
 
-    console.log(data);
+        if (response.status === 200) {
+            toggleFavoriteAnimation(`btn-${catId}`);
+        }
+
+    } catch (error) {
+        throw error;
+    }
+}
+
+function toggleFavoriteAnimation(btnId) {
+    const { 1: catId } = btnId.split('-');
+
+    const card = document.getElementById(catId);
+    card.classList.toggle('deleting');
+
+    const btnFav = document.getElementById(btnId);
+
+    btnFav.classList.toggle('card-btn--blue');
+    btnFav.innerText = 'Added to favorite';
+    btnFav.disabled = true;
+
+    setTimeout(() => {
+        document.getElementById(catId).remove()
+    }, 500)
 }
 
 async function deleteFavourite(id) {
@@ -122,11 +145,11 @@ async function deleteFavourite(id) {
                 'X-API-KEY': API_KEY
             }
         });
-        
+
         if (response.status == 200) {
             console.log('Se elimino de favoritos:' + id);
             document.getElementById(`${id}`).remove();
-            
+
         } else console.log('F no funciona esta monda');
     } catch (err) {
         if (card.classList.contains('deleting'))

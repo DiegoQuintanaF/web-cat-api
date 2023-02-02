@@ -121,6 +121,10 @@ a {
     background-color: #e90404;
 }
 
+.card-btn--blue {
+    background-color: #3c7aca;
+}
+
 .card-btn:hover,
 #sig-btn:hover {
     filter: contrast(1.2);
